@@ -9,13 +9,13 @@ import (
 	"strings"
 )
 
-func GeneratePostman(list []models.GroupRoute, host string, port string) []models.PostmanFolders {
+func GeneratePostman(patch string, list []models.GroupRoute, host string, port string, name string) []models.PostmanFolders {
 	var postman models.Postman
 	var varibles []models.PostmanVariables
-	varibles = append(varibles,models.PostmanVariables{Key: "base", Value: fmt.Sprintf("%v:%v",host,port)})
+	varibles = append(varibles, models.PostmanVariables{Key: "base", Value: fmt.Sprintf("%v:%v", host, port)})
 
 	postman.Info.PostmanId = "06a8b372-5aec-4fe3-9d98-5687f5576b51"
-	postman.Info.Name = "Constructor"
+	postman.Info.Name = name
 	postman.Info.Schema = "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	postman.Variable = varibles
 	var allPostmanFolder []models.PostmanFolders
@@ -43,12 +43,12 @@ func GeneratePostman(list []models.GroupRoute, host string, port string) []model
 	postman.Item = allPostmanFolder
 
 	file, _ := json.MarshalIndent(postman, " ", " ")
-	err2 := ioutil.WriteFile(fmt.Sprintf("postman_project.json"), file, 0644)
+	err2 := ioutil.WriteFile(fmt.Sprintf("%v/%v.json", patch, name), file, 0644)
 	if err2 != nil {
 		fmt.Println(err2)
 	}
 
-	return  allPostmanFolder
+	return allPostmanFolder
 }
 
 func GetResponce(v2 models.ListRoute, host string, port string) []models.PostmanResponse {
