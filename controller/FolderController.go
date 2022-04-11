@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"fmt"
 	"github.com/teo2022/go.generate_postm/models"
 	"io/ioutil"
 	"log"
@@ -13,7 +12,7 @@ func GetFolders(patch string) []models.ListCatalog {
 	if err != nil {
 		log.Fatal(err)
 	}
-	var allListCatalog  []models.ListCatalog
+	var allListCatalog []models.ListCatalog
 	lCatalog := models.ListCatalog{}
 	lCatalog.Catalog = "/"
 	lCatalog.Patch = patch + "/"
@@ -25,15 +24,15 @@ func GetFolders(patch string) []models.ListCatalog {
 		}
 	}
 
-	var finListCatalog  []models.ListCatalog
+	var finListCatalog []models.ListCatalog
 	finListCatalog = RecursionFolder(finListCatalog, allListCatalog, patch)
 	finListCatalog = append(finListCatalog, lCatalog)
-	fmt.Println(finListCatalog)
+	//fmt.Println(finListCatalog)
 	return finListCatalog
 }
 
 func RecursionFolder(finListCatalog []models.ListCatalog, allListCatalog []models.ListCatalog, patch string) []models.ListCatalog {
-	for _,v := range allListCatalog {
+	for _, v := range allListCatalog {
 		patch2 := patch + "/" + v.Catalog
 		if strings.Contains(v.Catalog, ".") {
 			continue
