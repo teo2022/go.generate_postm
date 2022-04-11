@@ -7,6 +7,7 @@ import (
 //func main() {
 //	TeoStartGenerate("localhost","9008","/Users/alex/GolandProjects/go.store", "store")
 //}
+
 func TeoStartGenerate(constUrl string, constPort string, patch string, name string) {
 	AllFolder := controller.GetFolders(patch)
 	allRoute := controller.GetRoute(AllFolder)
