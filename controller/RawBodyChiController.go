@@ -2,6 +2,7 @@ package controller
 
 import (
 	"github.com/teo2022/go.generate_postm/models"
+	"strings"
 )
 
 // Находим роуты который принимают боду
@@ -21,11 +22,17 @@ func GetRawBodyChi(group []models.GroupRoute, model []models.ListModel, AllFolde
 				break
 			}
 		}
-		group[i].Group[0].RawBody = schemModel
-		group[i].Group[1].RawBody = schemModel
-		group[i].Group[2].RawBody = schemModel
-		group[i].Group[3].RawBody = schemFilter
-		group[i].Group[4].RawBody = schemModel
+		for i2, v3 := range group[i].Group {
+			if v3.MetodFunc == "POST" || v3.MetodFunc == "PUT" {
+				if strings.Contains(v3.Link, "get-list") {
+					group[i].Group[i2].RawBody = schemFilter
+				} else {
+					group[i].Group[i2].RawBody = schemModel
+				}
+			} else {
+				group[i].Group[i2].RawBody = ""
+			}
+		}
 	}
 	return group
 }

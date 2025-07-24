@@ -87,7 +87,7 @@ func GetStruct(list []models.ListCatalog) []models.ListModel {
 
 func GetJsonStructure(list []models.ListModel) []models.ListModel {
 
-	for i,v := range list {
+	for i, v := range list {
 		var raw string
 		raw = v.Structure
 		raw = strings.Replace(raw, "type", "", -1)
@@ -125,6 +125,9 @@ func GetJsonStructure(list []models.ListModel) []models.ListModel {
 				}
 			}
 			if !isIgnore {
+				if match != nil && match[0][1] == "id" {
+					continue
+				}
 				finJson = append(finJson, rawLine)
 			}
 		}
@@ -153,7 +156,7 @@ func GetTypeString(line string) interface{} {
 	if strings.Contains(line, "bool") {
 		return "false"
 	}
-	if strings.Contains(line, "time.Time") {
+	if strings.Contains(line, "time.Time") || strings.Contains(line, "time.time") {
 		return "\"2022-03-14T05:40:00.000Z\""
 	}
 	if strings.Contains(line, "struct") {
@@ -165,7 +168,7 @@ func GetTypeString(line string) interface{} {
 
 func setComma(list []string) []string {
 	for i, _ := range list {
-		if i < len(list)-2 && i > 0{
+		if i < len(list)-2 && i > 0 {
 			list[i] = list[i] + ","
 		}
 		if strings.Contains(list[i], "\t") {

@@ -96,42 +96,79 @@ func GetRouteChi(list []models.ListCatalog) []models.GroupRoute {
 }
 
 func GetRoutRegChi(list []string) models.GroupRoute {
-	var goupsResult models.GroupRoute
+	var groupResult models.GroupRoute
 
-	groupLine := list[0]
-	re := regexp.MustCompile("\\\"/.*?/\\\"")
-	match := re.FindAllStringSubmatch(groupLine, -1)
-	clearNameGroup := strings.Replace(match[0][0], "/", "", -1)
-	clearNameGroup = strings.Replace(clearNameGroup, "\"", "", -1)
+	// Регулярное выражение для извлечения методов и путей
+	// Разбиваем входную строку на логические части
+	matches := splitIntoLogicalLines(strings.Join(list, "\n"))
 
-	goupsResult.Name = utils.GetNameUp(clearNameGroup)
+	// Извлекаем имя группы из первой строки
+	groupPath := strings.Trim(strings.ReplaceAll(matches[0], "r.Route(\"", ""), "\")")
+	groupName := strings.Trim(groupPath, "/")
+	groupResult.Name = utils.GetNameUp(groupName)
 
-	goupsResult.Group = append(goupsResult.Group, models.ListRoute{
-		Name:      "Create",
-		Link:      fmt.Sprintf("/%v/create", clearNameGroup),
-		MetodFunc: "POST",
-	})
-	goupsResult.Group = append(goupsResult.Group, models.ListRoute{
-		Name:      "Update",
-		Link:      fmt.Sprintf("/%v/update", clearNameGroup),
-		MetodFunc: "POST",
-	})
-	goupsResult.Group = append(goupsResult.Group, models.ListRoute{
-		Name:      "Get",
-		Link:      fmt.Sprintf("/%v/get", clearNameGroup),
-		MetodFunc: "POST",
-	})
-	goupsResult.Group = append(goupsResult.Group, models.ListRoute{
-		Name:      "GetList",
-		Link:      fmt.Sprintf("/%v/get-list", clearNameGroup),
-		MetodFunc: "POST",
-	})
-	goupsResult.Group = append(goupsResult.Group, models.ListRoute{
-		Name:      "Delete",
-		Link:      fmt.Sprintf("/%v/delete", clearNameGroup),
-		MetodFunc: "POST",
-	})
-	return goupsResult
+	// Проходим по всем строкам и извлекаем маршруты
+	for _, line := range matches[1:] { // Пропускаем первую строку (группу)
+		parts := strings.SplitN(line, "\"", 2) // Разделяем строку на метод и путь
+		if len(parts) < 2 {
+			continue // Пропускаем некорректные строки
+		}
+
+		// Извлекаем метод
+		methodAndPath := parts[0]
+		path := parts[1]
+
+		// Разделяем метод и путь
+		methodParts := strings.Split(methodAndPath, "(")
+		if len(methodParts) < 2 {
+			continue // Пропускаем некорректные строки
+		}
+		method := strings.ToUpper(strings.TrimSpace(methodParts[0][2:])) // Удаляем "r." и пробелы
+		path = strings.TrimSpace(path)
+		path = strings.Replace(path, "\"", "", -1)
+		// Формируем название маршрута
+		name := getNameFromPath(path)
+
+		// Добавляем маршрут в группу
+		groupResult.Group = append(groupResult.Group, models.ListRoute{
+			Name:      name,
+			Link:      fmt.Sprintf("/%v%v", groupName, path),
+			MetodFunc: method,
+		})
+	}
+	return groupResult
+}
+
+// splitIntoLogicalLines - разбивает входную строку на логические строки
+func splitIntoLogicalLines(input string) []string {
+	// Регулярное выражение для извлечения метода и пути
+	re := regexp.MustCompile(`r\.\w+\(\s*"[^"]+"`)
+
+	// Находим все совпадения
+	matches := re.FindAllString(input, -1)
+
+	// Убираем лишние пробелы
+	for i, match := range matches {
+		match = strings.Replace(match, "\t", "", -1)
+		match = strings.Replace(match, "\n", "", -1)
+		matches[i] = strings.TrimSpace(match)
+	}
+	return matches
+}
+
+// getIndentLevel - определяет уровень вложенности строки по количеству пробелов или табуляций
+func getIndentLevel(line string) int {
+	trimmed := strings.TrimLeft(line, "\t")
+	return len(line) - len(trimmed)
+}
+
+// getNameFromPath - генерирует название маршрута на основе пути
+func getNameFromPath(path string) string {
+	parts := strings.Split(strings.Trim(path, "/"), "/")
+	if len(parts) == 0 {
+		return "Unknown"
+	}
+	return strings.Title(strings.ReplaceAll(parts[0], "-", " "))
 }
 
 func GetRoutReg(line string) models.ListRoute {
